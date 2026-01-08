@@ -4,9 +4,10 @@ Este repositorio contiene material educativo sobre el comportamiento de los obje
 
 ## 1. Paso por Valor vs Paso por Referencia
 
-En JavaScript, cuando asignamos una variable a otra, no siempre se comporta igual. Esto depende de si el dato se pasa por **valor** o por **referencia**.
+En JavaScript, cuando asignamos una variable a otra, no siempre se comporta igual. Esto depende de si el dato se pasa por valor o por referencia.
 
 ### Paso por valor (se copia)
+
 Los datos simples se copian:
 
 ```javascript
@@ -22,6 +23,7 @@ console.log(b); // 10
 Cambiar `b` no afecta a `a` porque solo se copió el valor.
 
 ### Paso por referencia (se comparte)
+
 Los objetos y arrays se comparten:
 
 ```javascript
@@ -47,6 +49,7 @@ console.log(nums1); // [1, 2, 3, 4]
 ```
 
 ### Cómo evitar modificar el original
+
 Para crear una copia real del objeto:
 
 ```javascript
@@ -58,18 +61,23 @@ copia.edad = 25;
 console.log(usuario.edad); // 18
 ```
 
-**Resumen rápido:**
-*   Primitivos -> se copian (valor)
-*   Objetos y arrays -> se comparten (referencia)
+**Resumen rápido**
+*   Primitivos → se copian (valor)
+*   Objetos y arrays → se comparten (referencia)
 
 ---
 
 ## 2. Mutación de objetos
 
-La mutación se refiere a la acción de modificar las propiedades internas de un objeto o los elementos de un array existente. Es fundamental entender la diferencia entre **reasignación** y **mutación**, especialmente al usar `const`.
+La mutación se refiere a la acción de modificar las propiedades internas de un objeto o los elementos de un array existente. Es fundamental entender la diferencia entre **reasignación** y **mutación**.
 
-### El mito de const
-Declarar un objeto con `const` no lo hace inmutable. `const` solo impide que reasignes la variable (que la apuntes a otro lugar), pero permite cambiar el contenido de la estructura (mutarla).
+### El mito de `const` y la Inmutabilidad
+Existe una confusión común: creer que declarar un objeto con `const` lo hace "blindado" contra cambios.
+*   `const` protege la **variable**: No puedes apuntarla a otro sitio.
+*   `const` **NO** protege el **contenido**: Puedes cambiar lo que hay dentro.
+
+**Analogía:**
+Imagina que `const` es la dirección de tu casa. No puedes cambiar la dirección (la variable), pero sí puedes cambiar los muebles de adentro (mutar el objeto).
 
 **Ejemplo de Mutación (Permitido):**
 Aquí modificamos el contenido del objeto. La referencia en memoria sigue siendo la misma.
@@ -79,7 +87,7 @@ const perro = { nombre: "Firulais", edad: 3 };
 
 // Esto es mutación y ES válido con const
 perro.edad = 4;
-perro.raza = "Pastor Alemán";
+perro.raza = "Pastor Alemán"; // Agregamos propiedades
 
 console.log(perro); 
 // { nombre: "Firulais", edad: 4, raza: "Pastor Alemán" }
@@ -92,11 +100,38 @@ Aquí intentamos cambiar la referencia de la variable.
 const perro = { nombre: "Firulais" };
 
 // Esto lanzará un error porque intentamos reasignar la variable
-perro = { nombre: "Rex" }; // Uncaught TypeError: Assignment to constant variable.
+perro = { nombre: "Rex" }; // Uncaught TypeError
 ```
 
-### ¿Por qué es importante?
-Entender la mutación es clave para evitar efectos secundarios ("side effects") en el código. Si pasas un objeto a una función y esa función lo muta, el cambio afectará a cualquier otra parte del programa que use ese objeto.
+### Mutación en Arrays (Métodos peligrosos)
+Los arrays en JavaScript también son objetos. Muchos métodos nativos mutan el array original sin que nos demos cuenta, lo cual puede causar errores graves en el estado de la aplicación.
+
+*   **Métodos que MUTAN (Modifican el original):** `push`, `pop`, `shift`, `unshift`, `splice`, `sort`, `reverse`.
+*   **Métodos que NO MUTAN (Crean uno nuevo):** `map`, `filter`, `concat`, `slice`, `toSorted` (nuevo en ES2023).
+
+```javascript
+const lista = [3, 1, 2];
+
+// sort() ordena la lista original, la destruye y la cambia
+lista.sort(); 
+
+console.log(lista); // [1, 2, 3] ¡El orden original se perdió!
+```
+
+### Cómo prevenir la mutación: `Object.freeze()`
+Si realmente necesitas que un objeto sea inmutable (que nadie pueda cambiar sus propiedades), JavaScript ofrece `Object.freeze()`.
+
+```javascript
+const config = { puerto: 8080 };
+Object.freeze(config);
+
+config.puerto = 3000; // En modo estricto lanzará error, sino, lo ignora.
+
+console.log(config.puerto); // 8080 (No cambió)
+```
+
+### ¿Por qué la mutación es la causa de muchos bugs?
+Si pasas un objeto a una función y esa función lo muta, el cambio afectará a cualquier otra parte del programa que use ese objeto. Esto se conoce como **efecto secundario** y hace que el código sea impredecible.
 
 ---
 
@@ -123,12 +158,10 @@ const copiaUsuario = { ...usuario };
 Permite juntar varios arrays u objetos en uno solo.
 
 ```javascript
-// Arrays
 const a = [1, 2];
 const b = [3, 4];
 const resultado = [...a, ...b];
 
-// Objetos
 const base = { nombre: "Luis" };
 const extra = { edad: 30 };
 const combinado = { ...base, ...extra };
@@ -174,19 +207,20 @@ const letras = [..."Hola"];
 
 ## 4. Relación con manejo de estado
 
+### Introducción clara del tema
 El estado es toda la información que un programa guarda y utiliza en un momento específico, como datos de un usuario, configuraciones o valores temporales.
 
-### Objetos y su relación directa con el estado
-Un objeto es una estructura que agrupa datos relacionados. Por ejemplo, un objeto puede guardar el nombre, edad y correo de un usuario. En la mayoría de los programas, el estado se guarda dentro de objetos, porque permiten organizar la información de forma clara y reutilizable.
+#### 1. Objetos y su relación directa con el estado
+Un objeto es una estructura que agrupa datos relacionados. Por ejemplo, un objeto puede guardar el nombre, edad y correo de un usuario.
 
-Cada vez que una aplicación cambia de estado, en realidad lo que cambia es el contenido de uno o varios objetos.
+En la mayoría de los programas, el estado se guarda dentro de objetos, porque permiten organizar la información de forma clara y reutilizable. Cada vez que una aplicación cambia de estado, en realidad lo que cambia es el contenido de uno o varios objetos.
 
-### Qué significa trabajar con referencias
+#### 2. Qué significa trabajar con referencias
 Cuando asignamos un objeto a una variable, no se copia el objeto, sino que se guarda una referencia. Una referencia es un acceso directo al mismo objeto en memoria. Esto significa que dos variables pueden apuntar exactamente al mismo estado.
 
 Si una parte del programa modifica ese objeto, el cambio se refleja automáticamente en todas las variables que tengan esa referencia.
 
-### Problemas comunes por mal uso de referencias
+#### 3. Problemas comunes por mal uso de referencias
 En el manejo del estado, esto puede generar errores graves. Por ejemplo, si una función cambia un objeto sin avisar, puede alterar el estado global del programa, provocando resultados inesperados. Por eso, entender las referencias es esencial para saber quién puede modificar el estado y cuándo.
 
 **Ejemplo:**
@@ -210,9 +244,9 @@ console.log(estadoUsuario);
 
 ### Mutabilidad y Buen Manejo del Estado
 
-#### 1. Mutabilidad Directa del Estado (Mala Práctica)
-Se modifica directamente el estado global.
+#### 4. Mutabilidad directa del estado
 
+**Ejemplo:**
 ```javascript
 let estado = { contador: 0 };
 
@@ -221,23 +255,29 @@ function incrementar() {
 }
 ```
 
-*   **Error común:** Permitir que cualquier función cambie el estado sin registrar cuándo ocurrió el cambio.
-*   **Problema:** Genera un estado impredecible y bugs difíciles de detectar.
+*   **¿Qué se está haciendo?**
+    *   Se modifica directamente el estado global.
+    *   El contador cambia sin control externo.
+*   **Error común:** Permitir que cualquier función cambie el estado. No registrar cuándo ocurrió el cambio.
+*   **¿Cuándo NO usar esto?** En aplicaciones grandes o cuando varias funciones usan el mismo estado.
+*   **¿Qué problema genera?** Estado impredecible y bugs difíciles de detectar.
 
-#### 2. Efectos Secundarios
-La función cambia algo fuera de su propio alcance.
+#### 5. Efectos secundarios
 
+**Ejemplo:**
 ```javascript
 function activar(est) {
   est.activo = true;
 }
 ```
 
-*   **Problema:** El orden de ejecución importa y dos funciones pueden chocar entre sí.
+*   **¿Qué se está haciendo?** La función cambia algo fuera de su propio alcance. Produce un efecto secundario.
+*   **Error común:** Pensar que la función solo calcula algo. No documentar que cambia el estado.
+*   **¿Por qué es un problema?** El orden de ejecución importa. Dos funciones pueden chocar entre sí.
 
-#### 3. Manejo Correcto: Estado Inmutable
-No se modifica el objeto original. Se crea un nuevo estado basado en el anterior.
+#### 6. Manejo correcto: Estado inmutable
 
+**Ejemplo:**
 ```javascript
 function activar(est) {
   return {
@@ -247,23 +287,31 @@ function activar(est) {
 }
 ```
 
-*   **¿Por qué hacerlo así?:** El estado anterior sigue existiendo y los cambios son claros y controlados.
-*   **Beneficios:** Flujo de datos predecible, menos errores y código más fácil de mantener.
+*   **¿Qué se está haciendo?** No se modifica el objeto original. Se crea un nuevo estado basado en el anterior.
+*   **¿Por qué hacerlo así?** El estado anterior sigue existiendo. Los cambios son claros y controlados.
+*   **¿Cuándo usar estado inmutable?** En aplicaciones web, en manejo de estado compartido y en frameworks modernos.
+*   **¿Qué se obtiene?** Flujo de datos predecible, menos errores y código más fácil de mantener.
 
-#### 4. Copia Superficial vs Referencia
+#### 7. Copia superficial vs Referencia
 
-*   **Error común:** `let estado1 = { puntos: 10 }; let estado2 = estado1;` (Comparte referencia).
-*   **Forma correcta:** `let estado2 = { ...estado1 };` (Crea un nuevo estado).
+*   **Error común:** `let estado1 = { puntos: 10 }; let estado2 = estado1;`
+*   **Forma correcta:** `let estado2 = { ...estado1 };`
 
-### Conclusión (Qué aprender de todo esto)
-El manejo del estado en JavaScript depende de: saber dónde vive el estado, controlar quién lo modifica y decidir cuándo mutar y cuándo no.
+**Diferencia:** La primera comparte referencia, la segunda crea un nuevo estado.
+
+### Qué aprender de todo esto
+
+El manejo del estado en JavaScript depende de:
+*   Saber dónde vive el estado
+*   Controlar quién lo modifica
+*   Decidir cuándo mutar y cuándo no
 
 Un buen manejo del estado hace que la aplicación sea:
 *   Más estable
 *   Más predecible
 *   Más fácil de explicar y mantener
 
-**Ejemplo final:**
+**Ejemplo:**
 
 ```javascript
 let estadoApp = {
