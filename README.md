@@ -242,6 +242,20 @@ estadoUsuario = sumarPuntos(estadoUsuario);
 console.log(estadoUsuario);
 ```
 
+**Referencia más mutabildad:**
+
+```javascript
+const usuario1 = {
+  nombre: "Ana"
+};
+
+const usuario2 = usuario1;
+
+usuario2.nombre = "Laura";
+
+console.log(usuario1.nombre);
+```
+
 ### Mutabilidad y Buen Manejo del Estado
 
 #### 4. Mutabilidad directa del estado
